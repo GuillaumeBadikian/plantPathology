@@ -19,6 +19,7 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 
 
+os.chdir(os.getcwd())
 
 os.listdir('./data/')
 
