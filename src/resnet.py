@@ -1,23 +1,17 @@
 
 
-from keras.utils import np_utils
-from keras.models import Sequential
-from keras.layers import Convolution2D,Dense,MaxPool2D,Activation,Dropout,Flatten
+
+from keras.layers import Dense
 from keras.layers import GlobalAveragePooling2D
-from keras.optimizers import Adam
-from sklearn.model_selection import train_test_split
-from keras.layers.normalization import BatchNormalization
+
 import os
 import pandas as pd
 import plotly.graph_objs as go
-import matplotlib.ticker as ticker
 import matplotlib.pyplot as plt
 import seaborn as sns
-import plotly.express as px
 import cv2.cv2 as cv2
 import numpy as np
 from sklearn.model_selection import train_test_split
-
 
 os.chdir(os.getcwd())
 
