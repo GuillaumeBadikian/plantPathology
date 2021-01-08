@@ -1,9 +1,6 @@
 
-
-
 from keras.layers import Dense
 from keras.layers import GlobalAveragePooling2D
-
 import os
 import pandas as pd
 import plotly.graph_objs as go
