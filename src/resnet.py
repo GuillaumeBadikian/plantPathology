@@ -165,7 +165,7 @@ if __name__ == '__main__':
     fig
 
 
-    SUB_PATH = "../input/plant-pathology-2020-fgvc7/sample_submission.csv"
+    SUB_PATH = "data/sample_submission.csv"
 
     sub = pd.read_csv(SUB_PATH)
     probs_RESNET = model_finetuned.predict(test_generator, verbose=1)
