@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
+echo "activate venv"
 
-venv ="./venv/Scripts/activate"
-script = "./src/resNet.py"
+sourceF="./src/resnet.py"
+venv="./mon_env_virtuel/bin/activate"
 
+source $venv
 
-source {venv}
+python $sourceF
 
 

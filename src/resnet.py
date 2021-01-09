@@ -12,8 +12,8 @@ if __name__ == '__main__':
     import numpy as np
     from sklearn.model_selection import train_test_split
 
-    os.chdir(os.getcwd())
-
+    os.chdir(os.path.dirname(__file__))
+    print(os.path.abspath(__file__))
     os.listdir('./data/')
     print("test")
 
