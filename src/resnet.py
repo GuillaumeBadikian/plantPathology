@@ -1,19 +1,24 @@
 
 if __name__ == '__main__':
     #from tensorflow.keras.layers import concatenate
-    from keras.layers import Dense
-    from keras.layers import GlobalAveragePooling2D
+    #from keras.layers import Dense
+    #from keras.layers import GlobalAveragePooling2D
     import os
     import pandas as pd
-    import plotly.graph_objs as go
-    import matplotlib.pyplot as plt
-    import seaborn as sns
-    import cv2.cv2 as cv2
-    import numpy as np
-    from sklearn.model_selection import train_test_split
+    #import plotly.graph_objs as go
+    # matplotlib.pyplot as plt
+    # seaborn as sns
+    #mport cv2.cv2 as cv2
+    #import numpy as np
+    #from sklearn.model_selection import train_test_split
+
 
     os.chdir(os.path.dirname(__file__))
     print(os.path.abspath(__file__))
+    os.chdir(os.getcwd())
+    print(os.path.realpath(__file__))
+    print(os.path.dirname(__file__))
+
     os.listdir('./data/')
     print("test")
 
