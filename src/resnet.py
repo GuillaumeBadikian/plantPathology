@@ -13,10 +13,18 @@ if __name__ == '__main__':
     #mport cv2.cv2 as cv2
     #import numpy as np
     #from sklearn.model_selection import train_test_split
+<<<<<<< HEAD
     tf.distribute.experimental.TPUStrategy
+=======
+
+
+    os.chdir(os.path.dirname(__file__))
+    print(os.path.abspath(__file__))
+>>>>>>> 99b060db56138b03710dd7d1b0e6b2ba68432652
     os.chdir(os.getcwd())
     print(os.path.realpath(__file__))
     print(os.path.dirname(__file__))
+
     os.listdir('./data/')
     print("test")
 

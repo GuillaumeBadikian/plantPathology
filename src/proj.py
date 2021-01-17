@@ -1,6 +1,4 @@
-# %%
 
-# This Python 3 environment comes with many helpful analytics libraries installed
 # It is defined by the kaggle/python Docker image: https://github.com/kaggle/docker-python
 # For example, here's several helpful packages to load
 
@@ -14,6 +12,11 @@ import os
 
 # You can write up to 20GB to the current directory (/kaggle/working/) that gets preserved as output when you create a version using "Save & Run All"
 # You can also write temporary files to /kaggle/temp/, but they won't be saved outside of the current session
+
+
+# %%
+
+# %%
 
 
 # %%
@@ -36,7 +39,7 @@ import tensorflow.keras.layers as L
 from keras.utils import model_to_dot
 import tensorflow.keras.backend as K
 from tensorflow.keras.models import Model
-from kaggle_datasets import KaggleDatasets
+#from kaggle_datasets import KaggleDatasets
 from tensorflow.keras.applications import DenseNet121
 
 import seaborn as sns
@@ -62,7 +65,9 @@ warnings.filterwarnings("ignore")
 
 # %%
 
-strategy = tf.distribute.experimental.TPUStrategy(tpu)
+os.chdir(os.path.dirname(__file__))
+
+'''strategy = tf.distribute.experimental.TPUStrategy(tpu)
 
 AUTO = tf.data.experimental.AUTOTUNE
 tpu = tf.distribute.cluster_resolver.TPUClusterResolver()
@@ -72,16 +77,86 @@ tf.tpu.experimental.initialize_tpu_system(tpu)
 strategy = tf.distribute.experimental.TPUStrategy(tpu)
 
 BATCH_SIZE = 16 * strategy.num_replicas_in_sync
-GCS_DS_PATH = KaggleDatasets().get_gcs_path()
+'''
+'''gpus = tf.config.experimental.list_physical_devices('GPU')
+if gpus:
+  # Create 2 virtual GPUs with 1GB memory each
+  try:
+    for gpu in gpus:
+      tf.config.experimental.set_memory_growth(gpu, False)    
+    tf.config.experimental.set_virtual_device_configuration(
+        gpus[0],
+        [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=512),
+         tf.config.experimental.VirtualDeviceConfiguration(memory_limit=512)])
+    logical_gpus = tf.config.experimental.list_logical_devices('GPU')
+    strategy = tf.distribute.MirroredStrategy()
+    print(len(gpus), "Physical GPU,", len(logical_gpus), "Logical GPUs")
+  except RuntimeError as e:
+    # Virtual devices must be set before GPUs have been initialized
+    print(e)
+'''
+'''gpus = tf.config.experimental.list_physical_devices('GPU')
 
+
+if gpus:
+  # Restrict TensorFlow to only use the first GPU
+  try:
+    #for gpu in gpus:
+    #tf.config.experimental.set_memory_growth(gpus[3], True)
+    #tf.config.experimental.set_visible_devices(gpus[3], 'GPU')
+
+    for gpu in gpus:
+        tf.config.experimental.set_memory_growth(gpu, True)
+        tf.config.experimental.set_virtual_device_configuration(gpus[0], [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=1024)])
+    #logical_gpus = tf.config.experimental.list_logical_devices('GPU')
+    strategy = tf.distribute.MirroredStrategy()
+    #print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPU")
+  except RuntimeError as e:
+    # Visible devices must be set before GPUs have been initialized
+    print(e)
+
+
+tf.debugging.set_log_device_placement(True)
+'''
+
+
+
+
+
+gpus = tf.config.experimental.list_physical_devices("GPU")
+#for device in gpus:
+#    tf.config.experimental.set_memory_growth(device, True)
+if gpus:
+  # Create 2 virtual GPUs with 1GB memory each
+  try:
+    #tf.config.experimental.set_virtual_device_configuration(
+     #  gpus[1],
+     #   [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=1024),
+     #    tf.config.experimental.VirtualDeviceConfiguration(memory_limit=1024)])
+    logical_gpus = tf.config.experimental.list_logical_devices('GPU')
+    print(len(gpus), "Physical GPU,", len(logical_gpus), "Logical GPUs")
+  except RuntimeError as e:
+    # Virtual devices must be set before GPUs have been initialized
+    print(e)
+
+
+strategy = tf.distribute.MirroredStrategy(devices=["GPU:0","GPU:1","GPU:2","GPU:3"])
+#strategy = tf.distribute.MirroredStrategy(devices=["/GPU:0", "/job:localhost/replica:0/task:0/device:GPU:1","/job:localhost/replica:0/task:0/device:GPU:2"])
+#trategy = tf.distribute.experimental.MultiWorkerMirroredStrategy(
+#   tf.distribute.experimental.CollectiveCommunication.NCCL)
+#strategy = tf.distribute.MirroredStrategy(
+#    cross_device_ops=tf.distribute.ReductionToOneDevice())
+GCS_DS_PATH = "./data/"
+AUTO = tf.data.experimental.AUTOTUNE
+BATCH_SIZE = 8  #strategy.num_replicas_in_sync 
 # %%
 
 EPOCHS = 20
 SAMPLE_LEN = 100
-IMAGE_PATH = "../input/plant-pathology-2020-fgvc7/images/"
-TEST_PATH = "../input/plant-pathology-2020-fgvc7/test.csv"
-TRAIN_PATH = "../input/plant-pathology-2020-fgvc7/train.csv"
-SUB_PATH = "../input/plant-pathology-2020-fgvc7/sample_submission.csv"
+IMAGE_PATH = "./data/images/"
+TEST_PATH = "./data/test.csv"
+TRAIN_PATH = "./data/train.csv"
+SUB_PATH = "./data/sample_submission.csv"
 
 sub = pd.read_csv(SUB_PATH)
 test_data = pd.read_csv(TEST_PATH)
@@ -90,7 +165,6 @@ train_data = pd.read_csv(TRAIN_PATH)
 # %%
 
 train_data.head()
-
 
 # %%
 
@@ -194,9 +268,10 @@ test_dataset = (
 
 # %%
 
-def build_lrfn(lr_start=0.00003, lr_max=0.00005,
+def build_lrfn(lr_start=0.00001, lr_max=0.00005,
                lr_min=0.00001, lr_rampup_epochs=5,
                lr_sustain_epochs=0, lr_exp_decay=.8):
+    #strategy = 8
     lr_max = lr_max * strategy.num_replicas_in_sync
 
     def lrfn(epoch):
@@ -222,20 +297,20 @@ lr_schedule = tf.keras.callbacks.LearningRateScheduler(lrfn, verbose=1)
 # %%
 
 with strategy.scope():
+    print("create model")
     model = tf.keras.Sequential([DenseNet121(input_shape=(512, 512, 3),
                                              weights='imagenet',
                                              include_top=False),
                                  L.GlobalAveragePooling2D(),
                                  L.Dense(train_labels.shape[1],
-                                         activation='relu')])
-
+                                         activation='softmax')])
     model.compile(optimizer='adam',
                   loss='categorical_crossentropy',
                   metrics=['categorical_accuracy'])
     model.summary()
 
 # %%
-
+print("training...")
 history = model.fit(train_dataset,
                     epochs=EPOCHS,
                     callbacks=[lr_schedule],
@@ -243,7 +318,9 @@ history = model.fit(train_dataset,
                     validation_data=valid_dataset)
 
 # %%
-
+print(history.history['categorical_accuracy'], 
+    history.history['val_categorical_accuracy'])
+print("test")
 probs_dnn = model.predict(test_dataset, verbose=1)
 sub.loc[:, 'healthy':] = probs_dnn
 sub.to_csv('submission_dnn.csv', index=False)
@@ -252,4 +329,4 @@ sub.head()
 # %%
 
 f = open("demofile2.txt", "a")
-model.save("my_model.sav")
+model.save("model_softmax_epoch_40.sav")

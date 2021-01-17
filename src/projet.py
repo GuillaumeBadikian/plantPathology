@@ -46,6 +46,7 @@ class PlantPathology:
         self.__strategy = None
         self.__model = None
         self.__gpu_devices = ["GPU:0", "GPU:1", "GPU:2", "GPU:3"]
+        self.__history_file = "./data/history"
 
     def __load_image(self, image_id):
         file_path = image_id + ".jpg"
@@ -370,6 +371,14 @@ class PlantPathology:
                             callbacks=[lr_schedule],
                             steps_per_epoch=STEPS_PER_EPOCH,
                             validation_data=valid_dataset)
+
+        hist_df = pd.DataFrame(history.history)
+
+        with open(self.__history_file+".json", mode='w') as f:
+            hist_df.to_json(f)
+
+        with open(self.__history_file+".csv", mode='w') as f:
+            hist_df.to_csv(f)
 
         self.__test(test_dataset)
 
