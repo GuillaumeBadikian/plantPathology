@@ -46,7 +46,7 @@ class PlantPathology:
         self.__strategy = None
         self.__model = None
         self.__gpu_devices = ["GPU:0", "GPU:1", "GPU:2", "GPU:3"]
-        self.__history_file = "./data/history"
+        self.__history_file = "./data/history22"
 
     def __load_image(self, image_id):
         file_path = image_id + ".jpg"
@@ -205,8 +205,8 @@ class PlantPathology:
     def data_augment(self, image, label=None):
         image = tf.image.random_flip_left_right(image)
         image = tf.image.random_flip_up_down(image)
-        image = tf.image.adjust_contrast(image, 2)
-
+        #image = tf.image.adjust_contrast(image, 2)
+        image = tf.image.random_contrast(image, 0.2, 0.5)
         if label is None:
             return image
         else:
@@ -361,7 +361,7 @@ class PlantPathology:
                 .batch(self.__batch_size)
         )
         lrfn = self.build_lrfn()
-        STEPS_PER_EPOCH = 200 # train_labels.shape[0]
+        STEPS_PER_EPOCH = 30 # train_labels.shape[0]
         lr_schedule = tf.keras.callbacks.LearningRateScheduler(lrfn, verbose=1)
 
         self.dense_net(train_labels)
