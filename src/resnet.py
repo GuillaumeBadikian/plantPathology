@@ -1,3 +1,5 @@
+import tensorflow as tf
+from networkx.drawing.tests.test_pylab import plt
 
 if __name__ == '__main__':
     #from tensorflow.keras.layers import concatenate
@@ -11,7 +13,7 @@ if __name__ == '__main__':
     #mport cv2.cv2 as cv2
     #import numpy as np
     #from sklearn.model_selection import train_test_split
-
+    tf.distribute.experimental.TPUStrategy
     os.chdir(os.getcwd())
     print(os.path.realpath(__file__))
     print(os.path.dirname(__file__))

@@ -15,17 +15,6 @@ import os
 # You can write up to 20GB to the current directory (/kaggle/working/) that gets preserved as output when you create a version using "Save & Run All"
 # You can also write temporary files to /kaggle/temp/, but they won't be saved outside of the current session
 
-# %%
-
-pip
-install - -upgrade
-pip
-
-# %%
-
-pip
-install - q
-efficientnet
 
 # %%
 
@@ -114,6 +103,27 @@ def load_image(image_id):
 train_images = train_data["image_id"][:SAMPLE_LEN].progress_apply(load_image)
 
 
+def display_training_curves(training, validation, yaxis):
+    if yaxis == "loss":
+        ylabel = "Loss"
+        title = "Loss vs. Epochs"
+    else:
+        ylabel = "Accuracy"
+        title = "Accuracy vs. Epochs"
+
+    fig = go.Figure()
+
+    fig.add_trace(
+        go.Scatter(x=np.arange(1, EPOCHS + 1), mode='lines+markers', y=training, marker=dict(color="dodgerblue"),
+                   name="Train"))
+
+    fig.add_trace(
+        go.Scatter(x=np.arange(1, EPOCHS + 1), mode='lines+markers', y=validation, marker=dict(color="darkorange"),
+                   name="Val"))
+
+    fig.update_layout(title_text=title, yaxis_title=ylabel, xaxis_title="Epochs", template="plotly_white")
+    fig.show()
+    fig.write_image(file="accu.png", format="svg")
 # %%
 
 def format_path(st):
