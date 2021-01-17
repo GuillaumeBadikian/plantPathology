@@ -2,7 +2,7 @@
 echo "activate venv"
 
 sourceF="./src/projet.py"
-venv="./mon_env_virtuel/bin/activate"
+venv="./venv/bin/activate"
 
 source $venv
 

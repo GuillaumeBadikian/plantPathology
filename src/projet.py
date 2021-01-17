@@ -40,7 +40,7 @@ class PlantPathology:
         self.__test_path = self.__path + "/test.csv"
         self.__sub_path = self.__path + "/sample_submission.csv"
         self.__preprocess_path = "image_preprocessing"
-        self.__data: Data = None
+        self.__data = None
         self.__batch_size = 10
         self.__auto = None
         self.__strategy = None
@@ -187,7 +187,7 @@ class PlantPathology:
                 print(e)
 
         self.__strategy = tf.distribute.MirroredStrategy(devices=self.__gpu_devices)
-
+        self.__batch_size = 8 * self.__strategy.num_replicas_in_sync
     def format_path(self, st):
         #return self.__path + os.sep + self.__preprocess_path + os.sep + st + os.sep + '.jpg'
         return self.__path + os.sep + "images/" + os.sep + st + '.jpg'
@@ -361,7 +361,7 @@ class PlantPathology:
                 .batch(self.__batch_size)
         )
         lrfn = self.build_lrfn()
-        STEPS_PER_EPOCH = train_labels.shape[0]
+        STEPS_PER_EPOCH = 200 # train_labels.shape[0]
         lr_schedule = tf.keras.callbacks.LearningRateScheduler(lrfn, verbose=1)
 
         self.dense_net(train_labels)
@@ -384,6 +384,7 @@ class PlantPathology:
 
 
 if __name__ == '__main__':
+    os.chdir(os.path.dirname(__file__))
     warnings.filterwarnings("ignore")
     tqdm.pandas()
     plant = PlantPathology()
