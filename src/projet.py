@@ -344,12 +344,13 @@ class PlantPathology:
         x = GlobalAveragePooling2D()(x)
         x = Dense(128, activation="relu")(x)
         x = Dense(64, activation="relu")(x)
-        predictions = Dense(4, activation="softmax")(x)
-        model_finetuned = Model(inputs=model_finetuned.input, outputs=predictions)
-        model_finetuned.compile(optimizer='adam',
-                                loss='categorical_crossentropy',
-                                metrics=['accuracy'])
-        model_finetuned.summary()
+        model = tf.keras.Sequential(Dense(4, activation="softmax")(x))
+        model.compile(optimizer='adam',
+                      loss='categorical_crossentropy',
+                      metrics=['categorical_accuracy'])
+
+        self.__model = model
+
 
     def __display_training_curves(self, training, validation, yaxis):
         if yaxis == "loss":
@@ -425,45 +426,8 @@ class PlantPathology:
         elif(self.__model_type=="denseNet"):
             self.dense_net(train_labels)
 
-        if(self.__model_type=="resnet"):
+        elif(self.__model_type=="resnet"):
             self.res_net(train_labels)
-            train_datagen = ImageDataGenerator(horizontal_flip=True,
-                                               vertical_flip=True,
-                                               rotation_range=10,
-                                               width_shift_range=0.1,
-                                               height_shift_range=0.1,
-                                               zoom_range=.1,
-                                               fill_mode='nearest',
-                                               shear_range=0.1,
-                                               rescale=1 / 255,
-                                               brightness_range=[0.5, 1.5])
-            train_generator = train_datagen.flow_from_dataframe(train_paths, directory='./data/images/',
-                                                                target_size=(384, 384),
-                                                                x_col="image_id",
-                                                                y_col=['healthy', 'multiple_diseases', 'rust', 'scab'],
-                                                                class_mode='raw',
-                                                                shuffle=False,
-                                                                subset='training',
-                                                                batch_size=32)
-            val_generator = train_datagen.flow_from_dataframe(valid_paths, directory='./data/images/',
-                                                              target_size=(384, 384),
-                                                              x_col="image_id",
-                                                              y_col=['healthy', 'multiple_diseases', 'rust', 'scab'],
-                                                              class_mode='raw',
-                                                              shuffle=False,
-                                                              batch_size=32,
-                                                              )
-            history = self.__model.fit_generator(train_generator,
-                                                      steps_per_epoch=100,
-                                                      epochs=25, validation_data=val_generator, validation_steps=100
-                                                      , verbose=1, callbacks=[
-                    ReduceLROnPlateau(monitor='val_loss', factor=0.3, patience=3, min_lr=0.000001)],
-                                                      use_multiprocessing=False,
-                                                      shuffle=True)
-            hist_df = pd.DataFrame(history.history)
-            with open("{}_{}_{}.csv".format(self.__history_train, self.__model_type, str(self.__n_test).zfill(3)), mode='w') as f:
-                hist_df.to_csv(f)
-        else:
             history = self.__model.fit(train_dataset,
                                 epochs=self.__epoch,
                                 callbacks=[lr_schedule],

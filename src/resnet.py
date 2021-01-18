@@ -88,7 +88,7 @@ if __name__ == '__main__':
                                                         class_mode='raw',
                                                         shuffle=False,
                                                         subset='training',
-                                                        batch_size=32)
+                                                        batch_size=500)
 
     val_generator = train_datagen.flow_from_dataframe(val, directory='./data/images/',
                                                       target_size=(384, 384),
@@ -96,7 +96,7 @@ if __name__ == '__main__':
                                                       y_col=['healthy', 'multiple_diseases', 'rust', 'scab'],
                                                       class_mode='raw',
                                                       shuffle=False,
-                                                      batch_size=32,
+                                                      batch_size=500,
                                                       )
 
     test_generator = train_datagen.flow_from_dataframe(test, directory='./data/images/',
