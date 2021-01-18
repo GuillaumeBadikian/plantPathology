@@ -17,8 +17,6 @@ import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 import warnings
 
-from src.config import Config
-
 tqdm.pandas()
 
 import plotly.graph_objects as go
@@ -403,6 +401,7 @@ class PlantPathology:
 
 if __name__ == '__main__':
     os.chdir(os.path.dirname(__file__))
+    from src.config import Config
     warnings.filterwarnings("ignore")
     tqdm.pandas()
     plant = PlantPathology()
