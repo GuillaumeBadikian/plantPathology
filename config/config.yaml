@@ -1,0 +1,19 @@
+plantPathology:
+  epoch: 20
+  n_test: 1
+  image_path: ./data/images/
+  train_path: ./data/train.csv
+  test_path: ./data/test.csv
+  sub_path: ./data/sample_submission.csv
+  batch_size: 10
+  use: gpu
+  gpu_devices:
+    - GPU:0
+    - GPU:1
+    - GPU:2
+    - GPU:3
+  model: efficientNet
+  step_per_epoch: 30
+  history:
+    train: ./result/history_train
+    test:  ./result/history_test

@@ -16,6 +16,9 @@ import matplotlib.pyplot as plt
 
 from sklearn.model_selection import train_test_split
 import warnings
+
+from src.config import Config
+
 tqdm.pandas()
 
 import plotly.graph_objects as go
@@ -32,21 +35,31 @@ class Data:
 class PlantPathology:
 
     def __init__(self):
-        self.__epoch = 20
-        self.__sample_len = 100
-        self.__path = "./data/"
-        self.__image_path = self.__path + "/images/"
-        self.__train_path = self.__path + "/train.csv"
-        self.__test_path = self.__path + "/test.csv"
-        self.__sub_path = self.__path + "/sample_submission.csv"
+        config = Config().getConfig()['plantPathology']
+        print(config)
+        self.__epoch = config['epoch']
+        self.__n_test = config['n_test']
+        self.__use = config['use']
+        #self.__sample_len = 100
+        #self.__path = "./data/"
+        self.__model = config['model']
+        self.__image_path = config['image_path']
+        self.__train_path = config['train_path']
+        self.__test_path = config['test_path']
+        self.__sub_path = config['sub_path']
         self.__preprocess_path = "image_preprocessing"
         self.__data = None
-        self.__batch_size = 10
+        self.__batch_size = config['batch_size']
         self.__auto = None
         self.__strategy = None
         self.__model = None
-        self.__gpu_devices = ["GPU:0", "GPU:1", "GPU:2", "GPU:3"]
-        self.__history_file = "./data/history22"
+        self.__gpu_devices = config['gpu_devices']
+        #self.__history_file = "./data/history22"
+        self.__history_train = config['history']['train']
+        self.__history_test = config['history']['test']
+        self.__step_per_epoch = config['step_per_epoch']
+
+
 
     def __load_image(self, image_id):
         file_path = image_id + ".jpg"
@@ -190,7 +203,7 @@ class PlantPathology:
         self.__batch_size = 1 * self.__strategy.num_replicas_in_sync
     def format_path(self, st):
         #return self.__path + os.sep + self.__preprocess_path + os.sep + st + os.sep + '.jpg'
-        return self.__path + os.sep + "images/" + os.sep + st + '.jpg'
+        return self.__image_path + os.sep + st + '.jpg'
 
     def decode_image(self,filename, label=None, image_size=(512, 512)):
         bits = tf.io.read_file(filename)
@@ -322,7 +335,8 @@ class PlantPathology:
     def __test(self, test_dataset):
         probs_dnn = self.__model.predict(test_dataset, verbose=1)
         self.__data.sub.loc[:, 'healthy':] = probs_dnn
-        self.__data.sub.to_csv('submission_dnn.csv', index=False)
+        csv = "{}_{}_{}.csv".format(self.__history_test, self.__model, str(self.__n_test).zfill(3))
+        self.__data.sub.to_csv(csv, index=False)
         self.__data.sub.head()
         print(self.__data.sub.head())
 
@@ -365,23 +379,26 @@ class PlantPathology:
         lr_schedule = tf.keras.callbacks.LearningRateScheduler(lrfn, verbose=1)
 
         #self.dense_net(train_labels)
-        self.efficient_net(train_labels)        
+
+        if(self.__model=="efficientNet"):
+            self.efficient_net(train_labels)
+        elif(self.__model=="denseNet"):
+            self.dense_net(train_labels)
 
         history = self.__model.fit(train_dataset,
                             epochs=self.__epoch,
                             callbacks=[lr_schedule],
-                            steps_per_epoch=STEPS_PER_EPOCH,
+                            steps_per_epoch=self.__step_per_epoch,
                             validation_data=valid_dataset)
 
         hist_df = pd.DataFrame(history.history)
 
-        with open(self.__history_file+".json", mode='w') as f:
-            hist_df.to_json(f)
 
-        with open(self.__history_file+".csv", mode='w') as f:
+        with open("{}_{}_{}.csv".format(self.__history_train, self.__model, str(self.__n_test).zfill(3)), mode='w') as f:
             hist_df.to_csv(f)
 
         self.__test(test_dataset)
+        Config().increment_n_test()
 
 
 if __name__ == '__main__':
@@ -389,5 +406,10 @@ if __name__ == '__main__':
     warnings.filterwarnings("ignore")
     tqdm.pandas()
     plant = PlantPathology()
-    plant.useGPU()
+    use = Config().getConfig()['plantPathology']['use']
+    if use=='gpu':
+        plant.useGPU()
+    elif use=="tpu":
+        plant.useTPU()
+
     plant.run()
