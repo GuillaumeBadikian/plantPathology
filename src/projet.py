@@ -4,12 +4,14 @@ import numpy as np
 import pandas as pd
 import yaml
 from keras_applications.resnet50 import ResNet50
+from keras_preprocessing.image import ImageDataGenerator
 from pandas import DataFrame
 import tensorflow as tf
 import efficientnet.tfkeras as efn
 import tensorflow.keras.layers as L
 from tensorflow.keras.models import Model
 from tensorflow.keras.applications import DenseNet121
+from tensorflow.python.keras.callbacks import ReduceLROnPlateau
 from tensorflow.python.keras.layers import GlobalAveragePooling2D, Dense
 from tqdm import tqdm
 
@@ -17,6 +19,9 @@ import matplotlib.pyplot as plt
 
 from sklearn.model_selection import train_test_split
 import warnings
+
+from src.resnet import model_finetuned
+
 tqdm.pandas()
 
 import plotly.graph_objects as go
@@ -421,17 +426,55 @@ class PlantPathology:
         elif(self.__model_type=="denseNet"):
             self.dense_net(train_labels)
 
-        history = self.__model.fit(train_dataset,
-                            epochs=self.__epoch,
-                            callbacks=[lr_schedule],
-                            steps_per_epoch=self.__step_per_epoch,
-                            validation_data=valid_dataset)
+        if(self.__model_type=="resnet"):
+            train_datagen = ImageDataGenerator(horizontal_flip=True,
+                                               vertical_flip=True,
+                                               rotation_range=10,
+                                               width_shift_range=0.1,
+                                               height_shift_range=0.1,
+                                               zoom_range=.1,
+                                               fill_mode='nearest',
+                                               shear_range=0.1,
+                                               rescale=1 / 255,
+                                               brightness_range=[0.5, 1.5])
+            train_generator = train_datagen.flow_from_dataframe(train_paths, directory='./data/images/',
+                                                                target_size=(384, 384),
+                                                                x_col="image_id",
+                                                                y_col=['healthy', 'multiple_diseases', 'rust', 'scab'],
+                                                                class_mode='raw',
+                                                                shuffle=False,
+                                                                subset='training',
+                                                                batch_size=32)
+            val_generator = train_datagen.flow_from_dataframe(valid_paths, directory='./data/images/',
+                                                              target_size=(384, 384),
+                                                              x_col="image_id",
+                                                              y_col=['healthy', 'multiple_diseases', 'rust', 'scab'],
+                                                              class_mode='raw',
+                                                              shuffle=False,
+                                                              batch_size=32,
+                                                              )
+            history = self.__model.fit_generator(train_generator,
+                                                      steps_per_epoch=100,
+                                                      epochs=25, validation_data=val_generator, validation_steps=100
+                                                      , verbose=1, callbacks=[
+                    ReduceLROnPlateau(monitor='val_loss', factor=0.3, patience=3, min_lr=0.000001)],
+                                                      use_multiprocessing=False,
+                                                      shuffle=True)
+            hist_df = pd.DataFrame(history.history)
+            with open("{}_{}_{}.csv".format(self.__history_train, self.__model_type, str(self.__n_test).zfill(3)), mode='w') as f:
+                hist_df.to_csv(f)
+        else:
+            history = self.__model.fit(train_dataset,
+                                epochs=self.__epoch,
+                                callbacks=[lr_schedule],
+                                steps_per_epoch=self.__step_per_epoch,
+                                validation_data=valid_dataset)
 
-        hist_df = pd.DataFrame(history.history)
+            hist_df = pd.DataFrame(history.history)
 
 
-        with open("{}_{}_{}.csv".format(self.__history_train, self.__model_type, str(self.__n_test).zfill(3)), mode='w') as f:
-            hist_df.to_csv(f)
+            with open("{}_{}_{}.csv".format(self.__history_train, self.__model_type, str(self.__n_test).zfill(3)), mode='w') as f:
+                hist_df.to_csv(f)
 
         self.__test(test_dataset)
         Config().increment_n_test()
