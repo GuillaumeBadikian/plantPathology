@@ -341,26 +341,22 @@ class PlantPathology:
     def res_net(self, train_labels):
         if self.__strategy is not None:
             with self.__strategy.scope():
-                model_finetuned = ResNet50(include_top=False, weights='imagenet', input_shape=(384, 384, 3))
-                x = model_finetuned.output
-                x = GlobalAveragePooling2D()(x)
-                x = Dense(128, activation="relu")(x)
-                x = Dense(64, activation="relu")(x)
-                model = tf.keras.Sequential([Dense(4, activation="softmax")(x), L.GlobalAveragePooling2D(),
-                                         L.Dense(train_labels.shape[1],
-                                                 activation='softmax')])
+                model = tf.keras.Sequential([efn.EfficientNetB7(input_shape=(512, 512, 3),
+                                                                weights='imagenet',
+                                                                include_top=False),
+                                             L.GlobalAveragePooling2D(),
+                                             L.Dense(train_labels.shape[1],
+                                                     activation='softmax')])
                 model.compile(optimizer='adam',
                               loss='categorical_crossentropy',
                               metrics=['categorical_accuracy'])
 
                 self.__model = model
         else:
-            model_finetuned = ResNet50(include_top=False, weights='imagenet', input_shape=(384, 384, 3))
-            x = model_finetuned.output
-            x = GlobalAveragePooling2D()(x)
-            x = Dense(128, activation="relu")(x)
-            x = Dense(64, activation="relu")(x)
-            model = tf.keras.Sequential([Dense(4, activation="softmax")(x), L.GlobalAveragePooling2D(),
+            model = tf.keras.Sequential([ResNet50(input_shape=(512, 512, 3),
+                                                            weights='imagenet',
+                                                            include_top=False),
+                                         L.GlobalAveragePooling2D(),
                                          L.Dense(train_labels.shape[1],
                                                  activation='softmax')])
             model.compile(optimizer='adam',
