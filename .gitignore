@@ -1,5 +1,5 @@
 #Data
-
+.idea
 src/data/*
 !src/data/README.md
 
