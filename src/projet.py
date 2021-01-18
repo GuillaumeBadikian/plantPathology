@@ -17,7 +17,6 @@ import matplotlib.pyplot as plt
 
 from sklearn.model_selection import train_test_split
 import warnings
-from src.config import Config
 tqdm.pandas()
 
 import plotly.graph_objects as go
@@ -79,7 +78,7 @@ class PlantPathology:
         self.__use = config['use']
         #self.__sample_len = 100
         #self.__path = "./data/"
-        self.__model = config['model']
+        self.__model_type = config['model']
         self.__image_path = config['image_path']
         self.__train_path = config['train_path']
         self.__test_path = config['test_path']
@@ -372,7 +371,7 @@ class PlantPathology:
     def __test(self, test_dataset):
         probs_dnn = self.__model.predict(test_dataset, verbose=1)
         self.__data.sub.loc[:, 'healthy':] = probs_dnn
-        csv = "{}_{}_{}.csv".format(self.__history_test, self.__model, str(self.__n_test).zfill(3))
+        csv = "{}_{}_{}.csv".format(self.__history_test, self.__model_type, str(self.__n_test).zfill(3))
         self.__data.sub.to_csv(csv, index=False)
         self.__data.sub.head()
         print(self.__data.sub.head())
@@ -417,9 +416,9 @@ class PlantPathology:
 
         #self.dense_net(train_labels)
 
-        if(self.__model=="efficientNet"):
+        if(self.__model_type=="efficientNet"):
             self.efficient_net(train_labels)
-        elif(self.__model=="denseNet"):
+        elif(self.__model_type=="denseNet"):
             self.dense_net(train_labels)
 
         history = self.__model.fit(train_dataset,
@@ -431,7 +430,7 @@ class PlantPathology:
         hist_df = pd.DataFrame(history.history)
 
 
-        with open("{}_{}_{}.csv".format(self.__history_train, self.__model, str(self.__n_test).zfill(3)), mode='w') as f:
+        with open("{}_{}_{}.csv".format(self.__history_train, self.__model_type, str(self.__n_test).zfill(3)), mode='w') as f:
             hist_df.to_csv(f)
 
         self.__test(test_dataset)
@@ -445,6 +444,7 @@ if __name__ == '__main__':
     tqdm.pandas()
     plant = PlantPathology()
     use = Config().getConfig()['plantPathology']['use']
+
     if use=='gpu':
         plant.useGPU()
     elif use=="tpu":
