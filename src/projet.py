@@ -20,7 +20,6 @@ import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 import warnings
 
-from src.resnet import model_finetuned
 
 tqdm.pandas()
 
@@ -427,6 +426,7 @@ class PlantPathology:
             self.dense_net(train_labels)
 
         if(self.__model_type=="resnet"):
+            self.res_net(train_labels)
             train_datagen = ImageDataGenerator(horizontal_flip=True,
                                                vertical_flip=True,
                                                rotation_range=10,
