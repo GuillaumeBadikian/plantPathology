@@ -1,0 +1,19 @@
+plantPathology:
+  batch_size: 10
+  epoch: 20
+  gpu_devices:
+  - GPU:0
+  - GPU:1
+  - GPU:2
+  - GPU:3
+  history:
+    test: ./result/history_test
+    train: ./result/history_train
+  image_path: ./data/images/
+  model: resnet
+  n_test: 7
+  step_per_epoch: 80
+  sub_path: ./data/sample_submission.csv
+  test_path: ./data/test.csv
+  train_path: ./data/train.csv
+  use: gpu
