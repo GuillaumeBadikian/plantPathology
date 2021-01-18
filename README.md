@@ -1,5 +1,10 @@
 # plantPathology
-
+##Authors:
+-BADIKIAN Guillaume
+-CLEMENT Gauthier
+-LOEW Benoît
+-REVOUY Théo
+-SANOU Abou
 ## Packages
 - numpy
 - tensorflow
