@@ -1,6 +1,7 @@
 #Data
 
-src/data
+src/data/*
+!src/data/README.md
 
 venv
 # Byte-compiled / optimized / DLL files
