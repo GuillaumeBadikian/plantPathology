@@ -3,7 +3,8 @@ import os
 import numpy as np
 import pandas as pd
 import yaml
-from keras_applications.resnet50 import ResNet50
+#from keras_applications.resnet50 import ResNet50
+from tensorflow.keras.applications import ResNet50
 from keras_preprocessing.image import ImageDataGenerator
 from pandas import DataFrame
 import tensorflow as tf
@@ -341,12 +342,13 @@ class PlantPathology:
     def res_net(self, train_labels):
         if self.__strategy is not None:
             with self.__strategy.scope():
-                model = tf.keras.Sequential([efn.EfficientNetB7(input_shape=(512, 512, 3),
+                model = tf.keras.Sequential([ResNet50(input_shape=(512,512, 3),
                                                                 weights='imagenet',
                                                                 include_top=False),
                                              L.GlobalAveragePooling2D(),
-                                             L.Dense(train_labels.shape[1],
-                                                     activation='softmax')])
+                                             #L.Dense(128, activation='relu'),
+                                             #L.Dense(64, activation='relu')])
+                                             L.Dense(train_labels.shape[1], activation='softmax')])
                 model.compile(optimizer='adam',
                               loss='categorical_crossentropy',
                               metrics=['categorical_accuracy'])
