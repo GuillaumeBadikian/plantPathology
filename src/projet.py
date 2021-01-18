@@ -339,17 +339,35 @@ class PlantPathology:
             self.__model = model
 
     def res_net(self, train_labels):
-        model_finetuned = ResNet50(include_top=False, weights='imagenet', input_shape=(384, 384, 3))
-        x = model_finetuned.output
-        x = GlobalAveragePooling2D()(x)
-        x = Dense(128, activation="relu")(x)
-        x = Dense(64, activation="relu")(x)
-        model = tf.keras.Sequential(Dense(4, activation="softmax")(x))
-        model.compile(optimizer='adam',
-                      loss='categorical_crossentropy',
-                      metrics=['categorical_accuracy'])
+        if self.__strategy is not None:
+            with self.__strategy.scope():
+                model_finetuned = ResNet50(include_top=False, weights='imagenet', input_shape=(384, 384, 3))
+                x = model_finetuned.output
+                x = GlobalAveragePooling2D()(x)
+                x = Dense(128, activation="relu")(x)
+                x = Dense(64, activation="relu")(x)
+                model = tf.keras.Sequential([Dense(4, activation="softmax")(x), L.GlobalAveragePooling2D(),
+                                         L.Dense(train_labels.shape[1],
+                                                 activation='softmax')])
+                model.compile(optimizer='adam',
+                              loss='categorical_crossentropy',
+                              metrics=['categorical_accuracy'])
 
-        self.__model = model
+                self.__model = model
+        else:
+            model_finetuned = ResNet50(include_top=False, weights='imagenet', input_shape=(384, 384, 3))
+            x = model_finetuned.output
+            x = GlobalAveragePooling2D()(x)
+            x = Dense(128, activation="relu")(x)
+            x = Dense(64, activation="relu")(x)
+            model = tf.keras.Sequential([Dense(4, activation="softmax")(x), L.GlobalAveragePooling2D(),
+                                         L.Dense(train_labels.shape[1],
+                                                 activation='softmax')])
+            model.compile(optimizer='adam',
+                          loss='categorical_crossentropy',
+                          metrics=['categorical_accuracy'])
+
+            self.__model = model
 
 
     def __display_training_curves(self, training, validation, yaxis):
