@@ -346,8 +346,8 @@ class PlantPathology:
                                                                 weights='imagenet',
                                                                 include_top=False),
                                              L.GlobalAveragePooling2D(),
-                                             #L.Dense(128, activation='relu'),
-                                             #L.Dense(64, activation='relu')])
+                                             L.Dense(128, activation='relu'),
+                                             L.Dense(64, activation='relu'),
                                              L.Dense(train_labels.shape[1], activation='softmax')])
                 model.compile(optimizer='adam',
                               loss='categorical_crossentropy',

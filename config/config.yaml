@@ -11,7 +11,7 @@ plantPathology:
     train: ./result/history_train
   image_path: ./data/images/
   model: resnet
-  n_test: 7
+  n_test: 8
   step_per_epoch: 80
   sub_path: ./data/sample_submission.csv
   test_path: ./data/test.csv
