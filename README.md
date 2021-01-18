@@ -49,7 +49,7 @@ plantPathology:
 
 
 ### run plant pathology
-`modify your venv path`
+`myvenv` : folder of your venv : default /venv
 ```shell script
-source run.sh
+source run.sh myvenv
 ```
