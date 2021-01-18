@@ -3,13 +3,16 @@ import os
 import numpy as np
 import pandas as pd
 import yaml
-from keras_applications.resnet50 import ResNet50
+#from keras_applications.resnet50 import ResNet50
+from tensorflow.keras.applications import ResNet50
+from keras_preprocessing.image import ImageDataGenerator
 from pandas import DataFrame
 import tensorflow as tf
 import efficientnet.tfkeras as efn
 import tensorflow.keras.layers as L
 from tensorflow.keras.models import Model
 from tensorflow.keras.applications import DenseNet121
+from tensorflow.python.keras.callbacks import ReduceLROnPlateau
 from tensorflow.python.keras.layers import GlobalAveragePooling2D, Dense
 from tqdm import tqdm
 
@@ -17,6 +20,8 @@ import matplotlib.pyplot as plt
 
 from sklearn.model_selection import train_test_split
 import warnings
+
+
 tqdm.pandas()
 
 import plotly.graph_objects as go
@@ -335,17 +340,33 @@ class PlantPathology:
             self.__model = model
 
     def res_net(self, train_labels):
-        model_finetuned = ResNet50(include_top=False, weights='imagenet', input_shape=(384, 384, 3))
-        x = model_finetuned.output
-        x = GlobalAveragePooling2D()(x)
-        x = Dense(128, activation="relu")(x)
-        x = Dense(64, activation="relu")(x)
-        predictions = Dense(4, activation="softmax")(x)
-        model_finetuned = Model(inputs=model_finetuned.input, outputs=predictions)
-        model_finetuned.compile(optimizer='adam',
-                                loss='categorical_crossentropy',
-                                metrics=['accuracy'])
-        model_finetuned.summary()
+        if self.__strategy is not None:
+            with self.__strategy.scope():
+                model = tf.keras.Sequential([ResNet50(input_shape=(512,512, 3),
+                                                                weights='imagenet',
+                                                                include_top=False),
+                                             L.GlobalAveragePooling2D(),
+                                             #L.Dense(128, activation='relu'),
+                                             #L.Dense(64, activation='relu')])
+                                             L.Dense(train_labels.shape[1], activation='softmax')])
+                model.compile(optimizer='adam',
+                              loss='categorical_crossentropy',
+                              metrics=['categorical_accuracy'])
+
+                self.__model = model
+        else:
+            model = tf.keras.Sequential([ResNet50(input_shape=(512, 512, 3),
+                                                            weights='imagenet',
+                                                            include_top=False),
+                                         L.GlobalAveragePooling2D(),
+                                         L.Dense(train_labels.shape[1],
+                                                 activation='softmax')])
+            model.compile(optimizer='adam',
+                          loss='categorical_crossentropy',
+                          metrics=['categorical_accuracy'])
+
+            self.__model = model
+
 
     def __display_training_curves(self, training, validation, yaxis):
         if yaxis == "loss":
@@ -421,17 +442,19 @@ class PlantPathology:
         elif(self.__model_type=="denseNet"):
             self.dense_net(train_labels)
 
-        history = self.__model.fit(train_dataset,
-                            epochs=self.__epoch,
-                            callbacks=[lr_schedule],
-                            steps_per_epoch=self.__step_per_epoch,
-                            validation_data=valid_dataset)
+        elif(self.__model_type=="resnet"):
+            self.res_net(train_labels)
+            history = self.__model.fit(train_dataset,
+                                epochs=self.__epoch,
+                                callbacks=[lr_schedule],
+                                steps_per_epoch=self.__step_per_epoch,
+                                validation_data=valid_dataset)
 
-        hist_df = pd.DataFrame(history.history)
+            hist_df = pd.DataFrame(history.history)
 
 
-        with open("{}_{}_{}.csv".format(self.__history_train, self.__model_type, str(self.__n_test).zfill(3)), mode='w') as f:
-            hist_df.to_csv(f)
+            with open("{}_{}_{}.csv".format(self.__history_train, self.__model_type, str(self.__n_test).zfill(3)), mode='w') as f:
+                hist_df.to_csv(f)
 
         self.__test(test_dataset)
         Config().increment_n_test()
