@@ -24,6 +24,7 @@ pip3 install my_package
 ```
 
 ### create your config
+`config.yaml` into ./config/
 ```yaml
 plantPathology:
   batch_size: 10 # size of 1 batch
