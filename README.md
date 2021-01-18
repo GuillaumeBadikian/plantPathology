@@ -1,10 +1,21 @@
 # plantPathology
-##Authors:
--BADIKIAN Guillaume
--CLEMENT Gauthier
--LOEW Benoît
--REVOUY Théo
--SANOU Abou
+
+##report
+[plant pathology report](./report/projet.md)
+
+##kaggle
+
+- [1st kaggle](https://www.kaggle.com/guillaume74140/plant-pathology-2020-eda-models/edit?rvi=1)
+- [2nd kaggle](https://www.kaggle.com/a03102030/plant-pathology-2020-resnet50)
+
+
+## Authors
+- BADIKIAN Guillaume
+- CLEMENT Gauthier
+- LOEW Benoît
+- REVOUY Théo
+- SANOU Abou
+
 ## Packages
 - numpy
 - tensorflow
